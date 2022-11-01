@@ -15,7 +15,7 @@ install_package=""
 temp_files=()
 
 function Option:config() {
-  grep <<< "
+  grep <<<"
 #commented lines will be filtered
 flag|h|help|show usage
 flag|q|quiet|no output
@@ -39,39 +39,47 @@ Script:main() {
 
   action=$(Str:lower "$action")
   case $action in
-    install)
-      #TIP: use «$script_prefix install» to ...
-      #TIP:> $script_prefix install
-      sudo apt update
-      sudo apt install -y libdrm-tests firefox-esr Xorg xinit
-      sudo adduser screen
-      ;;
+  install)
+    #TIP: use «$script_prefix install» to ...
+    #TIP:> $script_prefix install
+    sudo apt update
+    sudo apt install -y libdrm-tests firefox-esr Xorg xinit
+    sudo adduser screen
+    local profile_folder="/etc/firefox-esr/profile"
 
-    run)
-      #TIP: use «$script_prefix run» to ...
-      #TIP:> $script_prefix run
-      do_run
-      ;;
+    [[ ! -d "$profile_folder" ]] && mkdir -p "$profile_folder"
+    cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
+    cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
 
-    check | env)
-      ## leave this default action, it will make it easier to test your script
-      #TIP: use «$script_prefix check» to check if this script is ready to execute and what values the options/flags are
-      #TIP:> $script_prefix check
-      #TIP: use «$script_prefix env» to generate an example .env file
-      #TIP:> $script_prefix env > .env
-      Script:check
-      ;;
+    [[ ! -d "$profile_folder/chrome" ]] && mkdir -p "$profile_folder/chrome"
+    cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
+    ;;
 
-    update)
-      ## leave this default action, it will make it easier to test your script
-      #TIP: use «$script_prefix update» to update to the latest version
-      #TIP:> $script_prefix update
-      Script:git_pull
-      ;;
+  run)
+    #TIP: use «$script_prefix run» to ...
+    #TIP:> $script_prefix run
+    do_run
+    ;;
 
-    *)
-      IO:die "action [$action] not recognized"
-      ;;
+  check | env)
+    ## leave this default action, it will make it easier to test your script
+    #TIP: use «$script_prefix check» to check if this script is ready to execute and what values the options/flags are
+    #TIP:> $script_prefix check
+    #TIP: use «$script_prefix env» to generate an example .env file
+    #TIP:> $script_prefix env > .env
+    Script:check
+    ;;
+
+  update)
+    ## leave this default action, it will make it easier to test your script
+    #TIP: use «$script_prefix update» to update to the latest version
+    #TIP:> $script_prefix update
+    Script:git_pull
+    ;;
+
+  *)
+    IO:die "action [$action] not recognized"
+    ;;
   esac
   IO:log "[$script_basename] ended after $SECONDS secs"
   #TIP: >>> bash script created with «pforret/bashew»
@@ -194,7 +202,7 @@ function IO:announce() {
 function IO:progress() {
   ((quiet)) || (
     local screen_width
-    screen_width=$(tput cols 2> /dev/null || echo 80)
+    screen_width=$(tput cols 2>/dev/null || echo 80)
     local rest_of_line
     rest_of_line=$((screen_width - 5))
 
@@ -237,7 +245,7 @@ function IO:question() {
 }
 
 function IO:log() {
-  [[ -n "${log_file:-}" ]] && echo "$(date '+%H:%M:%S') | $*" >> "$log_file"
+  [[ -n "${log_file:-}" ]] && echo "$(date '+%H:%M:%S') | $*" >>"$log_file"
 }
 
 function Tool:calc() {
@@ -376,18 +384,18 @@ Script:exit() {
 Script:check_version() {
   (
     # shellcheck disable=SC2164
-    pushd "$script_install_folder" &> /dev/null
+    pushd "$script_install_folder" &>/dev/null
     if [[ -d .git ]]; then
       local remote
       remote="$(git remote -v | grep fetch | awk 'NR == 1 {print $2}')"
       IO:progress "Check for latest version - $remote"
-      git remote update &> /dev/null
-      if [[ $(git rev-list --count "HEAD...HEAD@{upstream}" 2> /dev/null) -gt 0 ]]; then
+      git remote update &>/dev/null
+      if [[ $(git rev-list --count "HEAD...HEAD@{upstream}" 2>/dev/null) -gt 0 ]]; then
         IO:print "There is a more recent update of this script - run <<$script_prefix update>> to update"
       fi
     fi
     # shellcheck disable=SC2164
-    popd &> /dev/null
+    popd &>/dev/null
   )
 }
 
@@ -402,7 +410,7 @@ Script:git_pull() {
 Script:show_tips() {
   ((sourced)) && return 0
   # shellcheck disable=SC2016
-  grep < "${BASH_SOURCE[0]}" -v '$0' |
+  grep <"${BASH_SOURCE[0]}" -v '$0' |
     awk \
       -v green="$txtInfo" \
       -v yellow="$txtWarn" \
@@ -585,10 +593,10 @@ function Option:initialize() {
   fi
 }
 
-function Option:has_single() { Option:config | grep 'param|1|' > /dev/null; }
-function Option:has_choice() { Option:config | grep 'choice|1' > /dev/null; }
-function Option:has_optional() { Option:config | grep 'param|?|' > /dev/null; }
-function Option:has_multi() { Option:config | grep 'param|n|' > /dev/null; }
+function Option:has_single() { Option:config | grep 'param|1|' >/dev/null; }
+function Option:has_choice() { Option:config | grep 'choice|1' >/dev/null; }
+function Option:has_optional() { Option:config | grep 'param|?|' >/dev/null; }
+function Option:has_multi() { Option:config | grep 'param|n|' >/dev/null; }
 
 function Option:parse() {
   if [[ $# -eq 0 ]]; then
@@ -622,7 +630,7 @@ function Option:parse() {
         $1 ~ /secret/ && "--"$3 == opt {print $3"=${2:-}; shift #noshow"}
         ')
     if [[ -n "$save_option" ]]; then
-      if echo "$save_option" | grep shift >> /dev/null; then
+      if echo "$save_option" | grep shift >>/dev/null; then
         local save_var
         save_var=$(echo "$save_option" | cut -d= -f1)
         IO:debug "$config_icon parameter: ${save_var}=$2"
@@ -654,8 +662,8 @@ function Option:parse() {
     choices=$(Option:config | awk -F"|" '
       $1 == "choice" && $2 == 1 {print $3}
       ')
-    option_list=$(xargs <<< "$choices")
-    option_count=$(wc <<< "$choices" -w | xargs)
+    option_list=$(xargs <<<"$choices")
+    option_count=$(wc <<<"$choices" -w | xargs)
     IO:debug "$config_icon Expect : $option_count choice(s): $option_list"
     [[ $# -eq 0 ]] && IO:die "need the choice(s) [$option_list]"
 
@@ -667,7 +675,7 @@ function Option:parse() {
       IO:debug "$config_icon Assign : $param=$1"
       # check if choice is in list
       choices_list=$(Option:config | awk -F"|" -v choice="$param" '$1 == "choice" && $3 = choice {print $5}')
-      valid_choice=$(tr <<< "$choices_list" "," "\n" | grep "$1")
+      valid_choice=$(tr <<<"$choices_list" "," "\n" | grep "$1")
       [[ -z "$valid_choice" ]] && IO:die "choice [$1] is not valid, should be in list [$choices_list]"
 
       eval "$param=\"$1\""
@@ -683,8 +691,8 @@ function Option:parse() {
     single_params=$(Option:config | awk -F"|" '
       $1 == "param" && $2 == 1 {print $3}
       ')
-    option_list=$(xargs <<< "$single_params")
-    option_count=$(wc <<< "$single_params" -w | xargs)
+    option_list=$(xargs <<<"$single_params")
+    option_count=$(wc <<<"$single_params" -w | xargs)
     IO:debug "$config_icon Expect : $option_count single parameter(s): $option_list"
     [[ $# -eq 0 ]] && IO:die "need the parameter(s) [$option_list]"
 
@@ -705,7 +713,7 @@ function Option:parse() {
     local optional_params
     local optional_count
     optional_params=$(Option:config | grep 'param|?|' | cut -d'|' -f3)
-    optional_count=$(wc <<< "$optional_params" -w | xargs)
+    optional_count=$(wc <<<"$optional_params" -w | xargs)
     IO:debug "$config_icon Expect : $optional_count optional parameter(s): $(echo "$optional_params" | xargs)"
 
     for param in $optional_params; do
@@ -747,19 +755,19 @@ function Os:require() {
   local path_binary
   # $1 = binary that is required
   binary="$1"
-  path_binary=$(command -v "$binary" 2> /dev/null)
+  path_binary=$(command -v "$binary" 2>/dev/null)
   [[ -n "$path_binary" ]] && IO:debug "️$require_icon required [$binary] -> $path_binary" && return 0
   # $2 = how to install it
   words=$(echo "${2:-}" | wc -w)
   if ((force)); then
     IO:announce "Installing [$1] ..."
     case $words in
-      0) eval "$install_package $1" ;;
-        # Os:require ffmpeg -- binary and package have the same name
-      1) eval "$install_package $2" ;;
-        # Os:require convert imagemagick -- binary and package have different names
-      *) eval "${2:-}" ;;
-        # Os:require primitive "go get -u github.com/fogleman/primitive" -- non-standard package manager
+    0) eval "$install_package $1" ;;
+      # Os:require ffmpeg -- binary and package have the same name
+    1) eval "$install_package $2" ;;
+      # Os:require convert imagemagick -- binary and package have different names
+    *) eval "${2:-}" ;;
+      # Os:require primitive "go get -u github.com/fogleman/primitive" -- non-standard package manager
     esac
   else
     install_instructions="$install_package $1"
@@ -794,13 +802,13 @@ function Os:follow_link() {
   local link_name
   file_folder="$(dirname "$1")"
   # resolve relative to absolute path
-  [[ "$file_folder" != /* ]] && link_folder="$(cd -P "$file_folder" &> /dev/null && pwd)"
+  [[ "$file_folder" != /* ]] && link_folder="$(cd -P "$file_folder" &>/dev/null && pwd)"
   local symlink
   symlink=$(readlink "$1")
   link_folder=$(dirname "$symlink")
   link_name=$(basename "$symlink")
   [[ -z "$link_folder" ]] && link_folder="$file_folder"
-  [[ "$link_folder" == \.* ]] && link_folder="$(cd -P "$file_folder" && cd -P "$link_folder" &> /dev/null && pwd)"
+  [[ "$link_folder" == \.* ]] && link_folder="$(cd -P "$file_folder" && cd -P "$link_folder" &>/dev/null && pwd)"
   IO:debug "$info_icon Symbolic ln: $1 -> [$symlink]"
   Os:follow_link "$link_folder/$link_name"
 }
@@ -820,7 +828,7 @@ function Os:busy() {
   local message="${2:-}"
   local frames=("|" "/" "-" "\\")
   (
-    while kill -0 "$pid" &> /dev/null; do
+    while kill -0 "$pid" &>/dev/null; do
       for frame in "${frames[@]}"; do
         printf "\r[ $frame ] %s..." "$message"
         sleep 0.5
@@ -833,9 +841,9 @@ function Os:busy() {
 function Os:beep() {
   local type="${1=-info}"
   case $type in
-    *)
-      tput bel
-      ;;
+  *)
+    tput bel
+    ;;
   esac
 }
 
@@ -862,8 +870,8 @@ function Script:meta() {
   script_install_folder="$(cd -P "$(dirname "$script_install_path")" && pwd)"
   IO:debug "$info_icon In folder  : $script_install_folder"
   if [[ -f "$script_install_path" ]]; then
-    script_hash=$(Str:digest < "$script_install_path" 8)
-    script_lines=$(awk < "$script_install_path" 'END {print NR}')
+    script_hash=$(Str:digest <"$script_install_path" 8)
+    script_lines=$(awk <"$script_install_path" 'END {print NR}')
   fi
 
   # get shell/operating system/versions
@@ -883,35 +891,35 @@ function Script:meta() {
   os_machine=$(uname -m)
   install_package=""
   case "$os_kernel" in
-    CYGWIN* | MSYS* | MINGW*)
-      os_name="Windows"
-      ;;
-    Darwin)
-      os_name=$(sw_vers -productName)       # macOS
-      os_version=$(sw_vers -productVersion) # 11.1
-      install_package="brew install"
-      ;;
-    Linux | GNU*)
-      if [[ $(command -v lsb_release) ]]; then
-        # 'normal' Linux distributions
-        os_name=$(lsb_release -i | awk -F: '{$1=""; gsub(/^[\s\t]+/,"",$2); gsub(/[\s\t]+$/,"",$2); print $2}')    # Ubuntu/Raspbian
-        os_version=$(lsb_release -r | awk -F: '{$1=""; gsub(/^[\s\t]+/,"",$2); gsub(/[\s\t]+$/,"",$2); print $2}') # 20.04
-      else
-        # Synology, QNAP,
-        os_name="Linux"
-      fi
-      [[ -x /bin/apt-cyg ]] && install_package="apt-cyg install"     # Cygwin
-      [[ -x /bin/dpkg ]] && install_package="dpkg -i"                # Synology
-      [[ -x /opt/bin/ipkg ]] && install_package="ipkg install"       # Synology
-      [[ -x /usr/sbin/pkg ]] && install_package="pkg install"        # BSD
-      [[ -x /usr/bin/pacman ]] && install_package="pacman -S"        # Arch Linux
-      [[ -x /usr/bin/zypper ]] && install_package="zypper install"   # Suse Linux
-      [[ -x /usr/bin/emerge ]] && install_package="emerge"           # Gentoo
-      [[ -x /usr/bin/yum ]] && install_package="yum install"         # RedHat RHEL/CentOS/Fedora
-      [[ -x /usr/bin/apk ]] && install_package="apk add"             # Alpine
-      [[ -x /usr/bin/apt-get ]] && install_package="apt-get install" # Debian
-      [[ -x /usr/bin/apt ]] && install_package="apt install"         # Ubuntu
-      ;;
+  CYGWIN* | MSYS* | MINGW*)
+    os_name="Windows"
+    ;;
+  Darwin)
+    os_name=$(sw_vers -productName)       # macOS
+    os_version=$(sw_vers -productVersion) # 11.1
+    install_package="brew install"
+    ;;
+  Linux | GNU*)
+    if [[ $(command -v lsb_release) ]]; then
+      # 'normal' Linux distributions
+      os_name=$(lsb_release -i | awk -F: '{$1=""; gsub(/^[\s\t]+/,"",$2); gsub(/[\s\t]+$/,"",$2); print $2}')    # Ubuntu/Raspbian
+      os_version=$(lsb_release -r | awk -F: '{$1=""; gsub(/^[\s\t]+/,"",$2); gsub(/[\s\t]+$/,"",$2); print $2}') # 20.04
+    else
+      # Synology, QNAP,
+      os_name="Linux"
+    fi
+    [[ -x /bin/apt-cyg ]] && install_package="apt-cyg install"     # Cygwin
+    [[ -x /bin/dpkg ]] && install_package="dpkg -i"                # Synology
+    [[ -x /opt/bin/ipkg ]] && install_package="ipkg install"       # Synology
+    [[ -x /usr/sbin/pkg ]] && install_package="pkg install"        # BSD
+    [[ -x /usr/bin/pacman ]] && install_package="pacman -S"        # Arch Linux
+    [[ -x /usr/bin/zypper ]] && install_package="zypper install"   # Suse Linux
+    [[ -x /usr/bin/emerge ]] && install_package="emerge"           # Gentoo
+    [[ -x /usr/bin/yum ]] && install_package="yum install"         # RedHat RHEL/CentOS/Fedora
+    [[ -x /usr/bin/apk ]] && install_package="apk add"             # Alpine
+    [[ -x /usr/bin/apt-get ]] && install_package="apt-get install" # Debian
+    [[ -x /usr/bin/apt ]] && install_package="apt install"         # Ubuntu
+    ;;
 
   esac
   IO:debug "$info_icon System OS  : $os_name ($os_kernel) $os_version on $os_machine"
@@ -919,8 +927,8 @@ function Script:meta() {
 
   # get last modified date of this script
   script_modified="??"
-  [[ "$os_kernel" == "Linux" ]] && script_modified=$(stat -c %y "$script_install_path" 2> /dev/null | cut -c1-16) # generic linux
-  [[ "$os_kernel" == "Darwin" ]] && script_modified=$(stat -f "%Sm" "$script_install_path" 2> /dev/null)          # for MacOS
+  [[ "$os_kernel" == "Linux" ]] && script_modified=$(stat -c %y "$script_install_path" 2>/dev/null | cut -c1-16) # generic linux
+  [[ "$os_kernel" == "Darwin" ]] && script_modified=$(stat -f "%Sm" "$script_install_path" 2>/dev/null)          # for MacOS
 
   IO:debug "$info_icon Version  : $script_version"
   IO:debug "$info_icon Created  : $script_created"
@@ -930,7 +938,7 @@ function Script:meta() {
   IO:debug "$info_icon User     : $USER@$HOSTNAME"
 
   # if run inside a git repo, detect for which remote repo it is
-  if git status &> /dev/null; then
+  if git status &>/dev/null; then
     git_repo_remote=$(git remote -v | awk '/(fetch)/ {print $2}')
     IO:debug "$info_icon git remote : $git_repo_remote"
     git_repo_root=$(git rev-parse --show-toplevel)
@@ -940,7 +948,7 @@ function Script:meta() {
   # get script version from VERSION.md file - which is automatically updated by pforret/setver
   [[ -f "$script_install_folder/VERSION.md" ]] && script_version=$(cat "$script_install_folder/VERSION.md")
   # get script version from git tag file - which is automatically updated by pforret/setver
-  [[ -n "$git_repo_root" ]] && [[ -n "$(git tag &> /dev/null)" ]] && script_version=$(git tag --sort=version:refname | tail -1)
+  [[ -n "$git_repo_root" ]] && [[ -n "$(git tag &>/dev/null)" ]] && script_version=$(git tag --sort=version:refname | tail -1)
 }
 
 function Script:initialize() {
@@ -999,7 +1007,7 @@ function Os:clean_env() {
   local output="$1.__.sh"
   [[ ! -f "$input" ]] && IO:die "Input file [$input] does not exist"
   IO:debug "$clean_icon Clean dotenv: [$output]"
-  awk < "$input" '
+  awk <"$input" '
       function ltrim(s) { sub(/^[ \t\r\n]+/, "", s); return s }
       function rtrim(s) { sub(/[ \t\r\n]+$/, "", s); return s }
       function trim(s) { return rtrim(ltrim(s)); }
@@ -1016,7 +1024,7 @@ function Os:clean_env() {
           }
         }
       }
-  ' > "$output"
+  ' >"$output"
   echo "$output"
 }
 
