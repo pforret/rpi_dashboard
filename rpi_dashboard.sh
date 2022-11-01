@@ -59,9 +59,10 @@ Script:main() {
 
     [[ ! -d "/home/screen" ]] && IO:die "user 'screen' doesn't exist yet"
     verified_copy "$script_install_folder/files/.xserverrc" "/home/screen/"
+    verified_copy "$script_install_folder/files/.xsession"  "/home/screen/"
 
     [[ ! -d "/etc/systemd/system" ]] && IO:die "systemd is not installed"
-    verified_copy "$script_install_folder/files/.xsession" "/etc/systemd/system/"
+    verified_copy "$script_install_folder/files/information-display.service" "/etc/systemd/system/"
     sudo systemctl enable information-display
 
     ;;
