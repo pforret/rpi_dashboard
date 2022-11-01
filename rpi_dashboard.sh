@@ -47,15 +47,15 @@ Script:main() {
     IO:announce "Install some necessary packages"
     sudo apt install -y libdrm-tests firefox-esr Xorg xinit
     IO:announce "Create new user 'screen' - you will need to choose password"
-    sudo adduser screen
+    grep -c "^screen:" /etc/passwd || sudo adduser screen
 
     local profile_folder=/etc/firefox-esr/profile
-    [[ ! -d "$profile_folder" ]] && mkdir -p "$profile_folder"
-    cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
-    cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
+    [[ ! -d "$profile_folder" ]] && sudo mkdir -p "$profile_folder"
+    sudo cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
+    sudo cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
 
-    [[ ! -d "$profile_folder/chrome" ]] && mkdir -p "$profile_folder/chrome"
-    cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
+    [[ ! -d "$profile_folder/chrome" ]] && sudo mkdir -p "$profile_folder/chrome"
+    sudo cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
     ;;
 
   run)
