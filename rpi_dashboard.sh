@@ -56,6 +56,13 @@ Script:main() {
 
     [[ ! -d "$profile_folder/chrome" ]] && sudo mkdir -p "$profile_folder/chrome"
     sudo cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
+
+    [[ ! -d "/home/screen" ]] && IO:die "user 'screen' doesn't exist yet"
+    cp "$script_install_folder/files/.xserverrc" "/home/screen/"
+
+    [[ ! -d "/etc/systemd/system" ]] && IO:die "systemd is not installed"
+    sudo cp "$script_install_folder/files/.xsession" "/etc/systemd/system/"
+
     ;;
 
   run)
@@ -886,7 +893,7 @@ function Script:meta() {
   [[ -n "${KSH_VERSION:-}" ]] && shell_brand="ksh" && shell_version="$KSH_VERSION"
   IO:debug "$info_icon Shell type : $shell_brand - version $shell_version"
   if [[ "$shell_brand" == "bash" && "${BASH_VERSINFO:-0}" -lt 4 ]]; then
-    IO:die "Bash version 4 or higher is required - current version = $BASH_VERSINFO"
+    IO:die "Bash version 4 or higher is required - current version = ${BASH_VERSINFO:-0}"
   fi
 
   os_kernel=$(uname -s)

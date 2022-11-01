@@ -1,0 +1,4 @@
+#!/bin/sh
+# Start an X server with power management disabled so that the screen never goes blank
+
+exec /usr/bin/X -s 0 -dpms -nolisten tcp "$@"
