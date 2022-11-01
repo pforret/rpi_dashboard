@@ -42,11 +42,14 @@ Script:main() {
   install)
     #TIP: use «$script_prefix install» to ...
     #TIP:> $script_prefix install
+    IO:announce "Update package directory"
     sudo apt update
+    IO:announce "Install some necessary packages"
     sudo apt install -y libdrm-tests firefox-esr Xorg xinit
+    IO:announce "Create new user 'screen' - you will need to choose password"
     sudo adduser screen
-    local profile_folder="/etc/firefox-esr/profile"
 
+    local profile_folder=/etc/firefox-esr/profile
     [[ ! -d "$profile_folder" ]] && mkdir -p "$profile_folder"
     cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
     cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
