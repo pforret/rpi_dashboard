@@ -51,17 +51,17 @@ Script:main() {
 
     local profile_folder=/etc/firefox-esr/profile
     [[ ! -d "$profile_folder" ]] && sudo mkdir -p "$profile_folder"
-    sudo cp "$script_install_folder/files/xulstore.json" "$profile_folder/"
-    sudo cp "$script_install_folder/files/user.js" "$profile_folder/"
+    verified_copy "$script_install_folder/files/xulstore.json" "$profile_folder/"
+    verified_copy "$script_install_folder/files/user.js" "$profile_folder/"
 
     [[ ! -d "$profile_folder/chrome" ]] && sudo mkdir -p "$profile_folder/chrome"
-    sudo cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
+    verified_copy "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
 
     [[ ! -d "/home/screen" ]] && IO:die "user 'screen' doesn't exist yet"
-    sudo cp "$script_install_folder/files/.xserverrc" "/home/screen/"
+    verified_copy "$script_install_folder/files/.xserverrc" "/home/screen/"
 
     [[ ! -d "/etc/systemd/system" ]] && IO:die "systemd is not installed"
-    sudo cp "$script_install_folder/files/.xsession" "/etc/systemd/system/"
+    verified_copy "$script_install_folder/files/.xsession" "/etc/systemd/system/"
     sudo systemctl enable information-display
 
     ;;
@@ -111,11 +111,16 @@ do_install() {
 }
 
 function verified_copy() {
-  local filename
+  local filename destination
   filename="$(basename "$1")"
-  IO:announce "copy [$filename] -> [$2]"
-  sudo cp "$1" "$2"
-  [[ ! -f "$2$filename" ]] && IO:alert "Copy did not work correctly"
+  destination="$2$filename"
+  if [[ -f "$destination" ]] ; then
+    IO:debug "[$destination] exists already"
+  else
+    IO:announce "copy [$filename] -> [$2]"
+    sudo cp "$1" "$2"
+    [[ ! -f "$2$filename" ]] && IO:alert "Copy did not work correctly"
+  fi
 
 }
 
