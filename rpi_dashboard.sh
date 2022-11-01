@@ -110,9 +110,12 @@ do_install() {
   # (code)
 }
 
-do_run() {
-  IO:log "run"
-  # (code)
+function verified_copy() {
+  local filename
+  filename="$(basename "$1")"
+  IO:announce "copy [$filename] -> [$2]"
+  sudo cp "$1" "$2"
+  [[ ! -f "$2$filename" ]] && IO:alert "Copy did not work correctly"
 
 }
 
