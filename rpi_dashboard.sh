@@ -43,7 +43,9 @@ Script:main() {
     #TIP: use «$script_prefix install» to ...
     #TIP:> $script_prefix install
     IO:announce "Update package directory"
-    sudo apt update
+    local recently_updated="$tmp_dir/.apt_updated"
+    [[ ! -f "$recently_updated" ]] && sudo apt update && touch "$recently_updated"
+
     IO:announce "Install some necessary packages"
     sudo apt install -y libdrm-tests firefox-esr xserver-xorg xinit x11-xserver-utils
     IO:announce "Create new user 'screen' - you will need to choose password"
