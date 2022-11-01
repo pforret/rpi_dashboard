@@ -58,10 +58,11 @@ Script:main() {
     sudo cp "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
 
     [[ ! -d "/home/screen" ]] && IO:die "user 'screen' doesn't exist yet"
-    cp "$script_install_folder/files/.xserverrc" "/home/screen/"
+    sudo cp "$script_install_folder/files/.xserverrc" "/home/screen/"
 
     [[ ! -d "/etc/systemd/system" ]] && IO:die "systemd is not installed"
     sudo cp "$script_install_folder/files/.xsession" "/etc/systemd/system/"
+    sudo systemctl enable information-display
 
     ;;
 
