@@ -1,0 +1,24 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"); /* set default namespace to XUL */
+
+/* Hide the horizontal scroll bar */
+#content browser {
+    margin-right: -18px !important;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+/* Hide the vertical scroll bar */
+#content browser {
+    margin-bottom: -18px !important;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+/* if you look carefully, there is a little border on the left and top. Make it disappear */
+#content browser {
+    margin-left: -2px !important;
+}
+
+#content browser {
+    margin-top: -5px !important;
+}

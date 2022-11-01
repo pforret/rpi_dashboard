@@ -8,7 +8,7 @@
 
 # rpi_dashboard
 
-Dahsboard with rotating pages on Raspberry Pi
+Dashboard with rotating pages on Raspberry Pi
 
 ## 🔥 Usage
 
@@ -31,8 +31,10 @@ Flags, options and parameters:
 ## ⚡️ Examples
 
 ```bash
-> rpi_dashboard .
-# start PhpStorm with current folder as project
+> rpi_dashboard install
+# install all required software
+> rpi_dashboard run
+# run browser with list of URLs in loop
 ```
 
 ## 🚀 Installation
