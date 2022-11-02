@@ -43,6 +43,7 @@ Script:main() {
     #TIP: use «$script_prefix install» to ...
     #TIP:> $script_prefix install
     IO:announce "Update package directory"
+  # shellcheck disable=SC2154
     local recently_updated="$tmp_dir/.apt_updated"
     [[ ! -f "$recently_updated" ]] && sudo apt update && touch "$recently_updated"
 
@@ -85,7 +86,11 @@ Script:main() {
     local systemd_folder="/etc/systemd/system"
     safe_remove "$systemd_folder/information-display.service"
 
+    if confirm "Do you also want to uninstall xinit firefox-esr ... ?" ; then
+      sudo apt uninstall -y libdrm-tests firefox-esr xserver-xorg xinit x11-xserver-utils
+    fi
     ;;
+
   run)
     #TIP: use «$script_prefix run» to ...
     #TIP:> $script_prefix run
