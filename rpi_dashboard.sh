@@ -23,7 +23,7 @@ flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
-choice|1|action|action to perform|install,run,check,env,update
+choice|1|action|action to perform|install,uninstall,run,check,env,update
 #param|?|input|input file/text
 " -v -e '^#' -e '^\s*$'
 }
@@ -53,22 +53,39 @@ Script:main() {
 
     local profile_folder=/etc/firefox-esr/profile
     [[ ! -d "$profile_folder" ]] && sudo mkdir -p "$profile_folder"
-    verified_copy "$script_install_folder/files/xulstore.json" "$profile_folder/"
-    verified_copy "$script_install_folder/files/user.js" "$profile_folder/"
+    safe_copy "$script_install_folder/files/xulstore.json" "$profile_folder/"
+    safe_copy "$script_install_folder/files/user.js" "$profile_folder/"
 
     [[ ! -d "$profile_folder/chrome" ]] && sudo mkdir -p "$profile_folder/chrome"
-    verified_copy "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
+    safe_copy "$script_install_folder/files/userChrome.css" "$profile_folder/chrome/"
 
-    [[ ! -d "/home/screen" ]] && IO:die "user 'screen' doesn't exist yet"
-    verified_copy "$script_install_folder/files/.xserverrc" "/home/screen/"
-    verified_copy "$script_install_folder/files/.xsession"  "/home/screen/"
+    local home_folder=/home/screen
+    [[ ! -d "$home_folder" ]] && IO:die "user 'screen' doesn't exist yet"
+    safe_copy "$script_install_folder/files/.xserverrc" "$home_folder/"
+    safe_copy "$script_install_folder/files/.xsession"  "$home_folder/"
 
-    [[ ! -d "/etc/systemd/system" ]] && IO:die "systemd is not installed"
-    verified_copy "$script_install_folder/files/information-display.service" "/etc/systemd/system/"
+    local systemd_folder="/etc/systemd/system"
+    [[ ! -d "$systemd_folder" ]] && IO:die "systemd is not installed"
+    safe_copy "$script_install_folder/files/information-display.service" "$systemd_folder/"
     sudo systemctl enable information-display
 
     ;;
+  
+  uninstall)
+    local profile_folder=/etc/firefox-esr/profile
+    safe_remove "$profile_folder/xulstore.json"
+    safe_remove "$profile_folder/user.js"
+    safe_remove "$profile_folder/chrome/userChrome.css"
 
+    local home_folder=/home/screen
+    safe_remove "$home_folder/.xserverrc"
+    safe_remove "$home_folder/.xsession"
+
+    sudo systemctl disable information-display
+    local systemd_folder="/etc/systemd/system"
+    safe_remove "$systemd_folder/information-display.service"
+
+    ;;
   run)
     #TIP: use «$script_prefix run» to ...
     #TIP:> $script_prefix run
@@ -104,16 +121,7 @@ Script:main() {
 ## Put your helper scripts here
 #####################################################################
 
-do_install() {
-  IO:log "install"
-  # Examples of required binaries/scripts and how to install them
-  # Os:require "ffmpeg"
-  # Os:require "convert" "imagemagick"
-  # Os:require "IO:progressbar" "basher install pforret/IO:progressbar"
-  # (code)
-}
-
-function verified_copy() {
+function safe_copy() {
   local filename destination
   filename="$(basename "$1")"
   destination="$2$filename"
@@ -124,7 +132,18 @@ function verified_copy() {
     sudo cp "$1" "$2"
     [[ ! -f "$2$filename" ]] && IO:alert "Copy did not work correctly"
   fi
+}
 
+function safe_remove() {
+  local filename filepath
+  filepath="$1"
+  filename="$(basename "$1")"
+  if [[ -f "$filepath" ]] ; then
+    IO:announce "remove [$filepath]"
+    sudo rm -f "$filepath"
+  else
+    IO:debug "[$filepath] already gone"
+  fi
 }
 
 #####################################################################
